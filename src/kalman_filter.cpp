@@ -66,30 +66,28 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   
   // copy measurement vector for mutability
   VectorXd z_ = z;
-  // fixing the angle range
+  // constraining angle measurement to range(-pi,pi)
   if(z_(1) > M_PI){
-    // adjust to range(-pi,0)
     z_(1) -= 2*M_PI;
-    if(phi > 0){
-      // case where phi is in range(0,pi)
-      // but z is not
-      // change phi to result in same error value
-      phi -= 2*M_PI;
-    }
   }
   else if(z_(1) < -M_PI){
-    // adjust to range(0,pi)
     z_(1) += 2*M_PI;
-    if(phi < 0){
-      // case where phi is in range(-pi,0)
-      // but z is not
-      // change phi to result in same error value
-      phi += 2*M_PI;
-    }
+  }
+
+  // angle correction based on atan2 logic
+  float y_ = z_(1) - phi;
+  if(y_ > M_PI){
+    phi += 2*M_PI;
+  }
+  else if (y_ < -M_PI){
+    phi -= 2*M_PI;
   }
 
   VectorXd h(3);
   h << rho, phi, rho_dot;
+
+  std::cout<<"Measurements:\n"<<z_<<"\n\n";
+  std::cout<<"State:\n"<<h<<"\n\n";
 
   VectorXd z_pred = h;
   VectorXd y = z_ - z_pred;

@@ -29,7 +29,7 @@ string hasData(string s) {
   return "";
 }
 
-int main() {
+int main(int argc, char** argv) {
   uWS::Hub h;
 
   // Create a Kalman Filter instance
@@ -40,7 +40,7 @@ int main() {
   vector<VectorXd> estimations;
   vector<VectorXd> ground_truth;
 
-  h.onMessage([&fusionEKF,&tools,&estimations,&ground_truth]
+  h.onMessage([&fusionEKF,&tools,&estimations,&ground_truth,&argc,&argv]
               (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
                uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -66,6 +66,16 @@ int main() {
           // reads first element from the current line
           string sensor_type;
           iss >> sensor_type;
+
+          // Skip EKF update flag based on any arguments passed during
+          // execution
+          bool skip = false;
+          if(argc>1){
+            if(((string(argv[1]) == "--no-radar") && (sensor_type == "R"))
+                || (string(argv[1]) == "--no-laser") && (sensor_type == "L")){
+              skip = true;
+            }
+          }
 
           if (sensor_type.compare("L") == 0) {
             meas_package.sensor_type_ = MeasurementPackage::LASER;
@@ -107,12 +117,13 @@ int main() {
           gt_values(3) = vy_gt;
           ground_truth.push_back(gt_values);
           
+          if(!skip){
           // Call ProcessMeasurement(meas_package) for Kalman filter
           fusionEKF.ProcessMeasurement(meas_package);       
+          }
 
           // Push the current estimated x,y positon from the Kalman filter's 
           //   state vector
-
           VectorXd estimate(4);
 
           double p_x = fusionEKF.ekf_.x_(0);
@@ -128,6 +139,8 @@ int main() {
           estimations.push_back(estimate);
 
           VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
+          std::cout<<"RMSE:\n"<<RMSE<<"\n\n";
+
 
           json msgJson;
           msgJson["estimate_x"] = p_x;
