@@ -59,19 +59,36 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float vx = x_(2);
   float vy = x_(3);
 
-  VectorXd z_mod = z;
-  // fixing the angle range
-  if(z_mod(1) > M_PI){
-    z_mod(1) -= 2*M_PI;
-  }
-  std::cout<<"Phi: "<<z(1)<<"\n";
-
   // state space to measurement space mapping
   float rho = sqrt(px*px + py*py);
   float phi = atan2(py,px);
   float rho_dot = (px*vx + py*vy)/rho;
   
   std::cout<<"State Phi: "<<phi<<"\n";
+  
+  VectorXd z_mod = z;
+  // fixing the angle range
+  if(z_mod(1) > M_PI){
+    // adjust to range(-pi,0)
+    z_mod(1) -= 2*M_PI;
+    if(phi > 0){
+      // case where phi is in range(0,pi)
+      // but z is not
+      // change phi to result in same error value
+      phi -= 2*M_PI;
+    }
+  }
+  else if(z_mod(1) < -M_PI){
+    // adjust to range(0,pi)
+    z_mod(1) += 2*M_PI;
+    if(phi < 0){
+      // case where phi is in range(-pi,0)
+      // but z is not
+      // change phi to result in same error value
+      phi += 2*M_PI;
+    }
+  }
+  std::cout<<"Phi: "<<z(1)<<"\n";
 
   VectorXd h(3);
   h << rho, phi, rho_dot;
