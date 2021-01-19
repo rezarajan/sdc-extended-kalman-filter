@@ -77,8 +77,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack)
     ekf_.P_ = MatrixXd(4, 4);
     ekf_.P_ << 1, 0, 0, 0,
                0, 1, 0, 0,
-               0, 0, 1000, 0,
-               0, 0, 0, 1000;
+               0, 0, 1, 0,
+               0, 0, 0, 1;
 
     ekf_.Q_ = MatrixXd(4, 4);
     
@@ -129,9 +129,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack)
   // State transition function updated with current delta t
   ekf_.F_ = MatrixXd(4, 4);
   ekf_.F_ << 1, 0, dt, 0,
-      0, 1, 0, dt,
-      0, 0, 1, 0,
-      0, 0, 0, 1;
+             0, 1, 0, dt,
+             0, 0, 1, 0,
+             0, 0, 0, 1;
 
   // Current Process Noise Covariance Matrix updated with delta t
   ekf_.Q_ << (pow(dt, 4) * noise_ax / 4), 0, (pow(dt, 3) * noise_ax / 2), 0,
@@ -139,9 +139,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack)
       (pow(dt, 3) * noise_ax / 2), 0, (pow(dt, 2) * noise_ax), 0,
       0, (pow(dt, 3) * noise_ay / 2), 0, (pow(dt, 2) * noise_ay);
   
-  cout<<"Prediction Step\n";
   ekf_.Predict();
-  cout<<"Prediction Completed\n";
 
   /**
    * Update
@@ -155,11 +153,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack)
 
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR)
   {
-    // Calculating Jacobian
-    cout<<"Calculating Jacobian\n";
+
+        // Calculating Jacobian
     Hj_ = tools.CalculateJacobian(ekf_.x_);
     ekf_.H_ = Hj_;
-    cout<<"Jacobian Calculated\n"<<Hj_<<"\n\n";
     // TODO: Radar updates
     ekf_.R_ = R_radar_;
     ekf_.UpdateEKF(measurement_pack.raw_measurements_);
