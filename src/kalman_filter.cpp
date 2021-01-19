@@ -81,15 +81,20 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float rho = sqrt(px*px + py*py);
   float phi = atan2(py,px);
   float rho_dot = (px*vx + py*vy)/rho;
+  std::cout<<"Rho\n"<<rho<<"\n";
+  std::cout<<"Phi\n"<<phi<<"\n";
+  std::cout<<"Rho Dot\n"<<rho_dot<<"\n";
   
   std::cout<<"Calculating Kalman Gain\n";
+  std::cout<<"z\n"<<z<<"\n";
 
-  VectorXd h;
+  VectorXd h(3);
+  std::cout<<"Vector h created\n";
   h << rho, phi, rho_dot;
   std::cout<<"h mapping created\n";
 
-  VectorXd z_pred = h * x_;
-  std::cout<<"z_pred\n";
+  VectorXd z_pred = h;
+  std::cout<<"z_pred\n"<<z_pred<<"\n";
   VectorXd y = z - z_pred;
   std::cout<<"y\n";
   MatrixXd Ht = H_.transpose();
