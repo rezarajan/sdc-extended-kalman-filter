@@ -64,11 +64,12 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float phi = atan2(py,px);
   float rho_dot = (px*vx + py*vy)/rho;
   
-  VectorXd z_mod = z;
+  // copy measurement vector for mutability
+  VectorXd z_ = z;
   // fixing the angle range
-  if(z_mod(1) > M_PI){
+  if(z_(1) > M_PI){
     // adjust to range(-pi,0)
-    z_mod(1) -= 2*M_PI;
+    z_(1) -= 2*M_PI;
     if(phi > 0){
       // case where phi is in range(0,pi)
       // but z is not
@@ -76,9 +77,9 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
       phi -= 2*M_PI;
     }
   }
-  else if(z_mod(1) < -M_PI){
+  else if(z_(1) < -M_PI){
     // adjust to range(0,pi)
-    z_mod(1) += 2*M_PI;
+    z_(1) += 2*M_PI;
     if(phi < 0){
       // case where phi is in range(-pi,0)
       // but z is not
@@ -91,7 +92,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   h << rho, phi, rho_dot;
 
   VectorXd z_pred = h;
-  VectorXd y = z_mod - z_pred;
+  VectorXd y = z_ - z_pred;
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd Si = S.inverse();
