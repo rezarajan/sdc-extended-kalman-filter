@@ -64,8 +64,6 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   float phi = atan2(py,px);
   float rho_dot = (px*vx + py*vy)/rho;
   
-  std::cout<<"State Phi: "<<phi<<"\n";
-  
   VectorXd z_mod = z;
   // fixing the angle range
   if(z_mod(1) > M_PI){
@@ -88,7 +86,6 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
       phi += 2*M_PI;
     }
   }
-  std::cout<<"Phi: "<<z(1)<<"\n";
 
   VectorXd h(3);
   h << rho, phi, rho_dot;
