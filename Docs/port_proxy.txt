@@ -1,0 +1,7 @@
+# For port forwarding from windows to WSL2
+# In an admin Powershell session:
+# Adding an interface
+netsh interface portproxy add v4tov4 listenport=4567 listenaddress=0.0.0.0 connectport=4567 connectaddress=172.28.172.68
+
+# Deleting an interface
+netsh interface portproxy delete v4tov4 listenport=4567 listenaddress=0.0.0.0
